@@ -276,9 +276,8 @@ class I2cLcd(LcdApi):
 
 
 class I2C_Display(I2cLcd):
-    def __init__(self, address=0x27):
-        super().__init__(I2C(0, sda=Pin(0), scl=Pin(1), freq=400000), 0x27, 4, 20)
+    def __init__(self, address=0x27, sda = Pin(0), scl = Pin(1)):
+        super().__init__(I2C(0, sda=sda, scl=scl, freq=400000), 0x27, 4, 20)
 
-    def startup(self):
         self.blink_cursor_off()
         self.putstr("   QuizBox 1.0.0    \n")

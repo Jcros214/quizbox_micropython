@@ -2,15 +2,15 @@ from machine import Pin
 import machine
 
 class TLC5947:
-    def __init__(self, clock: int = 4, data: int = 5, latch: int = 7):
+    def __init__(self, clock: Pin = Pin("GP2", Pin.OUT), data: Pin = Pin("GP3", Pin.OUT), latch: Pin = Pin("GP5", Pin.OUT)):
         self.numdrivers = 1
-        # self.data = Pin(data, Pin.OUT)
-        # self.clock = Pin(clock, Pin.OUT)
-        self.latch = Pin(latch, Pin.OUT)
+        self._data  = data
+        self._clock = clock
+        self._latch = latch
 
-        self.latch.low()
+        self._latch.low()
 
-        self._spi = machine.SPI(0, sck=Pin(2), mosi=Pin(3), miso=None)
+        self._spi = machine.SPI(0, sck=self._clock, mosi=self._data, miso=None)
 
         # self.OE = OE
 
@@ -26,14 +26,14 @@ class TLC5947:
         otherwise write is automatically called on any channel update.
         """
         # First ensure latch is low.
-        self.latch.value(False)
+        self._latch.value(False)
         # Write out the bits.
         
         self._spi.write(bytearray(sorted(self.pwmbuffer)))
         
         # Then toggle latch high and low to set the value.
-        self.latch.value(True)
-        self.latch.value(False)
+        self._latch.value(True)
+        self._latch.value(False)
 
     def setLed(self, lednum, r,g,b):
         self.setPWM(lednum * 3, r)

@@ -1,19 +1,67 @@
-# My modules
-from i2c_display_ME import I2C_Display
-from tlc5947_ME import TLC5947
+# Notes: 
+# Remember to invert logic when using pullup resistors
 
-# External modules
-from time import sleep
 
-# display = I2C_Display()
-tlc = TLC5947()
+
+
+
+
+
+import machine
+from time import time
+
+# Declarations
+from maping import display, tlc, seats, buzzer, slides, reset
+
+r = 1000
+g = 1000
+b = 1000
+
+
+# Globals
+boxState = 0
+
+timer_start = 0
+timer = 32
+
+refreshTLC = False
+
 
 while True:
-    # display.startup()
-    for channel in range(24):
-        print(channel)
-        tlc.setPWM(channel, 50000)
+    if boxState == 1:
+        for index,seat,switch in zip([0,1,2,3,4,5],seats,slides): # Box is unlocked
+            if switch.value() and  seat.value(): # If enabled and standing
+                tlc.setLed(index, r,g,b)
+            else:
+                tlc.setLed(index, 0,0,0)
         tlc.write()
-        sleep(.5)
-        # tlc.setPWM(channel, 0)
-        tlc.write()
+
+    elif boxState == 2: # Box is armed
+        for index,seat,switch in zip([0,1,2,3,4,5],seats,slides): # Box is armed
+            if switch.value() and  seat.value(): # If enabled and standing
+                timer_start = time()
+                tlc.setLed(index, r,g,b)
+                tlc.setLed(5, 2000, 0, 0)
+                tlc.setLed(6, 2000, 0, 0)
+                tlc.write()
+
+                # buzz
+                # display write
+                boxState = 3
+
+    elif boxState == 3:
+        if timer > 0:
+            if round(time() - timer_start) != timer:
+                timer = round(time() - timer_start)
+                # display
+                if timer == 20:
+                    ...
+                    # Buzz
+                elif timer == 0:
+                    ...
+                    # buzz
+                    
+        else:
+            # display
+            timer_start = 0
+            boxState = 1
